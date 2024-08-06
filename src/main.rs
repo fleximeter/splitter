@@ -6,7 +6,7 @@ use threadpool::ThreadPool;
 /// For each file, returns a tuple that has the full path, directory, and file name without extension.
 fn find_audio(directory: &str) -> Vec<(String, String, String)> {
     let mut file_paths: Vec<(String, String, String)> = Vec::new();
-    let extensions = vec!["aif", "aiff", "mp3", "flac", "ogg", "aac", "m4a", "wma"];
+    let extensions = vec!["aif", "aiff", "mp3", "flac", "ogg", "aac", "m4a", "wav", "wma"];
     for extension in extensions {
         let entries = glob(&format!("{}/**/*.{}", directory, extension));
         match entries {
@@ -137,44 +137,39 @@ struct Args {
 
 /// Validates the command line arguments
 fn validate_args(args: Vec<String>) -> Option<Args> {
-    if args.len() <= 8 {
-        let valid_args = std::collections::HashMap::from([("-f", 1), ("--folder", 1), ("-n", 1), ("--num-threads", 1), ("-d", 1), ("--delete", 1)]);
+    if args.len() <= 9 {
         let mut processed_args: Args = Args{folder: String::from("."), num_frames: 44100 * 10, num_threads: 0, fade_in: false, delete: false};
         let mut i = 1;
         while i < args.len() {
-            if !valid_args.contains_key(args[i].as_str()) {
-                return None;
-            } else {
-                match args[i].as_str() {
-                    "-f" | "--folder" => {
-                        processed_args.folder = args[i+1].clone();
-                        i += 2;
-                    },
-                    "-n" | "--num-frames" => {
-                        processed_args.num_frames = match args[i+1].parse::<usize>() {
-                            Ok(x) => x,
-                            Err(_) => return None
-                        };
-                        i += 2;
-                    },
-                    "-t" | "--num-threads" => {
-                        processed_args.num_threads = match args[i+1].parse::<usize>() {
-                            Ok(x) => x,
-                            Err(_) => return None
-                        };
-                        i += 2;
-                    },
-                    "-d" | "--delete" => {
-                        processed_args.fade_in = true;
-                        i += 1;
-                    },
-                    "-i" | "--fade-in" => {
-                        processed_args.delete = true;
-                        i += 1;
-                    },
-                    _ => {
-                        return None;
-                    }
+            match args[i].as_str() {
+                "-f" | "--folder" => {
+                    processed_args.folder = args[i+1].clone();
+                    i += 2;
+                },
+                "-n" | "--num-frames" => {
+                    processed_args.num_frames = match args[i+1].parse::<usize>() {
+                        Ok(x) => x,
+                        Err(_) => return None
+                    };
+                    i += 2;
+                },
+                "-t" | "--num-threads" => {
+                    processed_args.num_threads = match args[i+1].parse::<usize>() {
+                        Ok(x) => x,
+                        Err(_) => return None
+                    };
+                    i += 2;
+                },
+                "-d" | "--delete" => {
+                    processed_args.delete = true;
+                    i += 1;
+                },
+                "-i" | "--fade-in" => {
+                    processed_args.fade_in = true;
+                    i += 1;
+                },
+                _ => {
+                    return None;
                 }
             }
         }
