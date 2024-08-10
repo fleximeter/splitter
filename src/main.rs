@@ -80,6 +80,10 @@ fn process(files: &Vec<(String, String, String)>, max_num_frames: usize, max_num
                         audio.sample_rate = 44100;
                     }
 
+                    for j in 0..audio.num_channels {
+                        aus::operations::adjust_level(&mut audio.samples[j], -3.0);
+                    }
+
                     // Split the file
                     for i in 0..num_files {
                         let new_file_name = format!("{}/{}_chunk{:0>3}.wav", dir, name, i);
@@ -106,7 +110,7 @@ fn process(files: &Vec<(String, String, String)>, max_num_frames: usize, max_num
                                 AudioError::FileInaccessible(msg) => println!("Error writing file {}: The file was inaccessible ({}).", new_file_name, msg),
                                 AudioError::NumChannels(msg) => println!("Error writing file {}: The number of channels was wrong ({}).", new_file_name, msg),
                                 AudioError::NumFrames(msg) => println!("Error writing file {}: The number of frames was wrong ({}).", new_file_name, msg),
-                                AudioError::SampleValueOutOfRange(msg) => println!("Error writing file {}: A sampel value was out of range ({}).", new_file_name, msg),
+                                AudioError::SampleValueOutOfRange(msg) => println!("Error writing file {}: A sample value was out of range ({}).", new_file_name, msg),
                                 AudioError::WrongFormat(msg) => println!("Error writing file {}: The format was wrong ({}).", new_file_name, msg)
                             }
                         };    
@@ -117,7 +121,7 @@ fn process(files: &Vec<(String, String, String)>, max_num_frames: usize, max_num
                     AudioError::FileInaccessible(msg) => println!("Error writing file {}: The file was inaccessible ({}).", file, msg),
                     AudioError::NumChannels(msg) => println!("Error writing file {}: The number of channels was wrong ({}).", file, msg),
                     AudioError::NumFrames(msg) => println!("Error writing file {}: The number of frames was wrong ({}).", file, msg),
-                    AudioError::SampleValueOutOfRange(msg) => println!("Error writing file {}: A sampel value was out of range ({}).", file, msg),
+                    AudioError::SampleValueOutOfRange(msg) => println!("Error writing file {}: A sample value was out of range ({}).", file, msg),
                     AudioError::WrongFormat(msg) => println!("Error writing file {}: The format was wrong ({}).", file, msg)
                 }
             }
@@ -138,12 +142,23 @@ struct Args {
 /// Validates the command line arguments
 fn validate_args(args: Vec<String>) -> Option<Args> {
     if args.len() <= 9 {
-        let mut processed_args: Args = Args{folder: String::from("."), num_frames: 44100 * 10, num_threads: 0, fade_in: false, delete: false};
+        let current_dir = match std::env::current_dir() {
+            Ok(dir) => {
+                match dir.to_str() {
+                    Some(val) => val.to_string(),
+                    None => String::from(".")
+                }
+            },
+            Err(_) => String::from(".")
+        };
+        let mut processed_args: Args = Args{folder: current_dir, num_frames: 44100 * 10, num_threads: 0, fade_in: false, delete: false};
         let mut i = 1;
         while i < args.len() {
-            match args[i].as_str() {
+            match args[i].as_str().trim() {
                 "-f" | "--folder" => {
-                    processed_args.folder = args[i+1].clone();
+                    if args[i+1] != "." {
+                        processed_args.folder = args[i+1].clone();
+                    }
                     i += 2;
                 },
                 "-n" | "--num-frames" => {

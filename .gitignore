@@ -23,3 +23,13 @@ Cargo.lock
 # Added by cargo
 
 /target
+
+# Other
+*.wav
+*.aiff
+*.aif
+*.flac
+*.mp3
+*.aac
+*.wma
+*.ogg
