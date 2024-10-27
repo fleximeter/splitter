@@ -33,3 +33,6 @@ Cargo.lock
 *.aac
 *.wma
 *.ogg
+
+# for Macs
+.DS_Store
